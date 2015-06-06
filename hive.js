@@ -16,7 +16,7 @@ function hex(context,hCoord,size,fillColour,textColour,label){
   pCoord = hexToPix(hCoord);
   x = pCoord[0]
   y = pCoord[1]
-  console.log(x,y);
+  
   context.save()
   context.beginPath();
   for(i=0; i<7; i++){
@@ -86,10 +86,9 @@ function getCoord(e){
 function hiveOnClick(e){
   pCoord = getCoord(e);
   var hCoord = pixToRoundHex(pCoord);
-  gTiles[hCoord] = gCounter
+  gTiles.push([hCoord,gCounter]);
   gCounter++;
   hiveRedraw();
-  console.log(gTiles);
 }
 
 function hiveOnMove(e){
@@ -99,21 +98,22 @@ function hiveOnMove(e){
 }
 
 function hiveRedraw(){
-  for (var hCoord in gTiles){
-    console.log(hCoord);
-    hex(gContext,hCoord,50,'#f0f0e0','#dd0000',gTiles[hCoord]);
+  gContext.clearRect(0,0,800,600);
+  for (var tile in gTiles){
+    hex(gContext,gTiles[tile][0],48,'#ffffee','#dd4444',gTiles[tile][1]);
   }
+  hex(gContext,gMouse,45,'','','');
 }
 
 $(document).ready(function() {
   gCanvas = $("#hive")[0];
   gCanvas.addEventListener("click",hiveOnClick,false);
-  //gCanvas.addEventListener("mousemove",hiveOnMove,false);
+  gCanvas.addEventListener("mousemove",hiveOnMove,false);
   
   gContext = gCanvas.getContext("2d");
   gContext.textAlign="center";
   gContext.textBaseline="middle";
   
   gCounter = 0;
-  gTiles = {};
+  gTiles = [];
  });
