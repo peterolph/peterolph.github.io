@@ -6,14 +6,13 @@ var gMouse;
 
 var kWidth;
 var kHeight;
-
-var kWhiteColour = 'rgb(250,250,230)';
-var kBlackColour = 'rgb(30,30,30)';
-var kBeetleColour = 'rgb(144,129,246)';
-var kSpiderColour = 'rgb(79,42,23)';
-var kBeeColour = 'rgb(246,158,34)';
-var kHopperColour = 'rgb(47,158,64)';
-var kAntColour = 'rgb(67,134,205)';
+var kPlayerColours = {'WHITE': 'rgb(250,250,230)',
+                      'BLACK': 'rgb(30,30,30)'}
+var kPieceColours =  {'BEETLE': 'rgb(144,129,246)',
+                      'SPIDER': 'rgb(79,42,23)',
+                      'BEE': 'rgb(246,158,34)',
+                      'HOPPER': 'rgb(47,158,64)',
+                      'ANT': 'rgb(67,134,205)'};
 
 function hexCorner(x,y,size,i){
   var angle = 60 * i;
@@ -41,12 +40,7 @@ function drawTile(context,hCoord,data){
   player = data[0];
   piece = data[1];
   
-  var fillColour = '#ffffff';
-  if(player === 'one'){
-    fillColour = kWhiteColour;
-  } else if(player === 'two'){
-    fillColour = kBlackColour;
-  }
+  var fillColour = kPlayerColours[player];
   context.fillStyle = fillColour;
   context.fill();
   
@@ -55,18 +49,9 @@ function drawTile(context,hCoord,data){
   context.lineWidth = 1;
   context.stroke();
   
-  var textColour = '#000000'
-  if(piece === 'BEE'){
-    textColour = kBeeColour;
-  } else if(piece === 'ANT'){
-    textColour = kAntColour;
-  } else if(piece === 'HOPPER'){
-    textColour = kHopperColour;
-  } else if(piece === 'SPIDER'){
-    textColour = kSpiderColour;
-  } else if(piece === 'BEETLE'){
-    textColour = kBeetleColour;
-  }
+  var textColour = kPieceColours[piece];
+  context.textAlign="center";
+  context.textBaseline="middle";
   context.fillStyle = textColour;
   context.font = "20px Arial";
   context.fillText(piece,x,y);
@@ -126,7 +111,7 @@ function getCoord(e){
 function hiveOnClick(e){
   pCoord = getCoord(e);
   var hCoord = pixToRoundHex(pCoord);
-  setTile(hCoord,['two','HOPPER']);
+  setTile(hCoord,['WHITE','HOPPER']);
   hiveRedraw();
 }
 
@@ -168,8 +153,9 @@ $(document).ready(function() {
   gCanvas.addEventListener("mousemove",hiveOnMove,false);
   
   gContext = gCanvas.getContext("2d");
-  gContext.textAlign="center";
-  gContext.textBaseline="middle";
+  
+  kWidth = gContext.width;
+  kHeight = gContext.height;
   
   gTiles = [];
  });
