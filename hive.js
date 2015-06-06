@@ -2,6 +2,7 @@
 var gCanvas;
 var gContext;
 var gTiles = [];
+var gPrevMouse = [-1,-1];
 var gMouse = [-1,-1];
 var gPlayer = 'WHITE';
 var gPiece = 'BEE';
@@ -238,7 +239,10 @@ function hiveOnClick(e){
 function hiveOnMove(e){
   pCoord = getCoord(e);
   gMouse = pixToRoundHex(pCoord);
-  hiveRedraw();
+  if(gMouse[0] != gPrevMouse[0] || gMouse[1] != gPrevMouse[1]){
+    hiveRedraw();
+  }
+  gPrevMouse = gMouse
 }
 
 function hiveRedraw(){
