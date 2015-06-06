@@ -1,11 +1,18 @@
 
 var gCanvas;
 var gContext;
-var gTiles;
-var gMouse;
+var gTiles = [];
+var gMouse = [-1,-1];
+var gPlayer = 'WHITE';
+var gPiece = 'BEE';
 
 var kWidth;
 var kHeight;
+var kButtonWidth = 70;
+var kButtonHeight = 20;
+var kButtonMargin = 10;
+var kTileSize = 48;
+var kCursorSize = 45;
 var kPlayerColours = {'WHITE': 'rgb(250,250,230)',
                       'BLACK': 'rgb(30,30,30)'}
 var kPieceColours =  {'BEETLE': 'rgb(144,129,246)',
@@ -13,6 +20,7 @@ var kPieceColours =  {'BEETLE': 'rgb(144,129,246)',
                       'BEE': 'rgb(246,158,34)',
                       'HOPPER': 'rgb(47,158,64)',
                       'ANT': 'rgb(67,134,205)'};
+var kBorderColour = '#202020';
 
 function hexCorner(x,y,size,i){
   var angle = 60 * i;
@@ -33,37 +41,90 @@ function hexPath(context,hCoord,size,fillColour,textColour,label){
   context.closePath();
 }
 
-function drawTile(context,hCoord,data){
-  context.save();
-  hexPath(context,hCoord,48);
+function drawTile(hCoord,data){
+  gContext.save();
+  hexPath(gContext,hCoord,kTileSize);
   
   player = data[0];
   piece = data[1];
   
   var fillColour = kPlayerColours[player];
-  context.fillStyle = fillColour;
-  context.fill();
+  gContext.fillStyle = fillColour;
+  gContext.fill();
   
-  context.strokeStyle = '#202020';
-  context.lineJoin = 'round';
-  context.lineWidth = 1;
-  context.stroke();
+  gContext.strokeStyle = kBorderColour;
+  gContext.lineJoin = 'round';
+  gContext.lineWidth = 1;
+  gContext.stroke();
   
   var textColour = kPieceColours[piece];
-  context.textAlign="center";
-  context.textBaseline="middle";
-  context.fillStyle = textColour;
-  context.font = "20px Arial";
-  context.fillText(piece,x,y);
-  context.restore();
+  gContext.textAlign="center";
+  gContext.textBaseline="middle";
+  gContext.fillStyle = textColour;
+  gContext.font = "20px Arial";
+  gContext.fillText(piece,x,y);
+  gContext.restore();
 }
 
-function drawCursor(context,hCoord){
-  context.save();
-  hexPath(context,hCoord,45);
-  context.strokeStyle = 'rgba(200,0,0,0.5)';
-  context.stroke();
-  context.restore();
+function drawCursor(){
+  gContext.save();
+  hexPath(gContext,gMouse,kCursorSize);
+  gContext.strokeStyle = 'rgba(200,0,0,0.5)';
+  gContext.stroke();
+  gContext.restore();
+}
+
+function drawButton(index,colour){
+  var x = kWidth - kButtonWidth - kButtonMargin
+  var y = kButtonMargin + (kButtonMargin + kButtonHeight) * index
+  gContext.fillStyle = colour;
+  gContext.fillRect(x, y, kButtonWidth, kButtonHeight);
+}
+
+function drawButtons(){
+  gContext.save();
+  gContext.fillStyle = '#dddddd'
+  gContext.fillRect(kWidth-kButtonWidth-kButtonMargin*2,0,kButtonWidth+kButtonMargin*2,kButtonMargin*9+kButtonHeight*8);
+  gContext.strokeRect(kWidth-kButtonWidth-kButtonMargin*2,0,kButtonWidth+kButtonMargin*2,kButtonMargin*9+kButtonHeight*8);
+  var count = 0;
+  for(var key in kPlayerColours){
+    drawButton(count,kPlayerColours[key]);
+    count++;
+  }
+  count ++
+  for(var key in kPieceColours){
+    drawButton(count,kPieceColours[key]);
+    count++;
+  }
+  gContext.restore();
+}
+
+function highlightButton(index){
+  var x = kWidth - kButtonWidth - kButtonMargin
+  var y = kButtonMargin + (kButtonMargin + kButtonHeight) * index
+  gContext.strokeRect(x, y, kButtonWidth, kButtonHeight);
+}
+
+function highlightButtons(){
+  gContext.save();
+  gContext.strokeStyle = '#ff0000';
+  gContext.lineWidth = 2;
+  if(gPlayer === 'WHITE'){
+    highlightButton(0);
+  } else {
+    highlightButton(1);
+  }
+  if(gPiece === 'BEETLE'){
+    highlightButton(3);
+  } else if(gPiece === 'SPIDER'){
+    highlightButton(4);
+  } else if(gPiece === 'BEE'){
+    highlightButton(5);
+  } else if(gPiece === 'HOPPER'){
+    highlightButton(6);
+  } else if(gPiece === 'ANT'){
+    highlightButton(7);
+  }
 }
 
 function pixToHex(pCoord){
@@ -108,10 +169,48 @@ function getCoord(e){
   return [x,y];
 }
 
+function checkIfButtonIsBeingPressed(pCoord){
+  var x = pCoord[0];
+  var y = pCoord[1];
+  var w = kButtonWidth;
+  var h = kButtonHeight;
+  var m = kButtonMargin;
+  if(x > kWidth - w - m && x < kWidth - m){
+    if(y > m && y < m+h){
+      gPlayer = 'WHITE';
+    } else if(y > m*2+h && y < m*2+h*2){
+      gPlayer = 'BLACK';
+    } else if(y > m*4+h*3 && y < m*4+h*4){
+      gPiece = 'BEETLE';
+    } else if(y > m*5+h*4 && y < m*5+h*5){
+      gPiece = 'SPIDER';
+    } else if(y > m*6+h*5 && y < m*6+h*6){
+      gPiece = 'BEE';
+    } else if(y > m*7+h*6 && y < m*7+h*7){
+      gPiece = 'HOPPER';
+    } else if(y > m*8+h*7 && y < m*8+h*8){
+      gPiece = 'ANT';
+    }
+  }
+  if( x > kWidth - w - m*2 && y < m*9 + h*8 ){
+    return true;
+  } else {
+    return false;
+  }
+}
+
 function hiveOnClick(e){
   pCoord = getCoord(e);
-  var hCoord = pixToRoundHex(pCoord);
-  setTile(hCoord,['WHITE','HOPPER']);
+  var buttonWasPressed = checkIfButtonIsBeingPressed(pCoord);
+  if(!buttonWasPressed){
+    var hCoord = pixToRoundHex(pCoord);
+    setTile(hCoord,[gPlayer,gPiece]);
+    if(gPlayer === 'WHITE'){
+      gPlayer = 'BLACK';
+    } else {
+      gPlayer = 'WHITE';
+    }
+  }
   hiveRedraw();
 }
 
@@ -124,9 +223,11 @@ function hiveOnMove(e){
 function hiveRedraw(){
   gContext.clearRect(0,0,800,600);
   for (var tile in gTiles){
-    drawTile(gContext,gTiles[tile][0],gTiles[tile][1]);
+    drawTile(gTiles[tile][0],gTiles[tile][1]);
   }
-  drawCursor(gContext,gMouse);
+  drawCursor();
+  drawButtons();
+  highlightButtons();
 }
 
 function setTile(hCoord,data){
@@ -154,8 +255,8 @@ $(document).ready(function() {
   
   gContext = gCanvas.getContext("2d");
   
-  kWidth = gContext.width;
-  kHeight = gContext.height;
+  kWidth = gCanvas.width;
+  kHeight = gCanvas.height;
   
-  gTiles = [];
+  hiveRedraw();
  });
