@@ -5,6 +5,7 @@ var gTiles = [];
 var gMouse = [-1,-1];
 var gPlayer = 'WHITE';
 var gPiece = 'BEE';
+var gWaitingForMove = null;
 
 var kWidth;
 var kHeight;
@@ -200,16 +201,30 @@ function checkIfButtonIsBeingPressed(pCoord){
   }
 }
 
+function turnover(){
+  if(gPlayer === 'WHITE'){
+    gPlayer = 'BLACK';
+  } else {
+    gPlayer = 'WHITE';
+  }
+}
+
 function hiveOnClick(e){
-  pCoord = getCoord(e);
-  var buttonWasPressed = checkIfButtonIsBeingPressed(pCoord);
-  if(!buttonWasPressed){
-    var hCoord = pixToRoundHex(pCoord);
-    setTile(hCoord,[gPlayer,gPiece]);
-    if(gPlayer === 'WHITE'){
-      gPlayer = 'BLACK';
-    } else {
-      gPlayer = 'WHITE';
+  var pCoord = getCoord(e);
+  var hCoord = pixToRoundHex(pCoord);
+  if(gWaitingForMove){
+    moveTile(gWaitingForMove,hCoord);
+    gWaitingForMove = null;
+    turnover();
+  } else {
+    var buttonWasPressed = checkIfButtonIsBeingPressed(pCoord);
+    if(!buttonWasPressed){
+      if(getTile(hCoord)){
+        gWaitingForMove = hCoord
+      } else {
+        setTile(hCoord,[gPlayer,gPiece]);
+        turnover();
+      }
     }
   }
   hiveRedraw();
@@ -231,22 +246,33 @@ function hiveRedraw(){
   highlightButtons();
 }
 
-function setTile(hCoord,data){
+function findTile(hCoord){
   for(var i in gTiles){
     if(gTiles[i][0][0] === hCoord[0] && gTiles[i][0][1] === hCoord[1]){
-      gTiles[i] = [hCoord,data];
-      return;
+      return i;
     }
   }
-  gTiles.push([hCoord,data]);
+}
+
+function setTile(hCoord,data){
+  i = findTile(hCoord);
+  if(i){
+    gTiles[i] = [hCoord,data];
+  } else {
+    gTiles.push([hCoord,data]);
+  }
 }
 
 function getTile(hCoord){
-  for(var i in gTiles){
-    if(gTiles[i][0][0] === hCoord[0] && gTiles[i][0][1] === hCoord[1]){
-      return gTiles[i][1];
-    }
+  i = findTile(hCoord);
+  if(i){
+    return gTiles[i][1];
   }
+}
+
+function moveTile(hCoord,newHCoord){
+  i = findTile(hCoord);
+  gTiles[i][0] = newHCoord;
 }
 
 $(document).ready(function() {
