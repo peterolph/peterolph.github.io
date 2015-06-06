@@ -219,10 +219,10 @@ function hiveOnClick(e){
   } else {
     var buttonWasPressed = checkIfButtonIsBeingPressed(pCoord);
     if(!buttonWasPressed){
-      if(getTile(hCoord)){
+      if(findTile(hCoord)){
         gWaitingForMove = hCoord
       } else {
-        setTile(hCoord,[gPlayer,gPiece]);
+        setTile(hCoord,[gPlayer,gPiece,-1]);
         turnover();
       }
     }
@@ -263,15 +263,18 @@ function setTile(hCoord,data){
   }
 }
 
-function getTile(hCoord){
-  i = findTile(hCoord);
-  if(i){
-    return gTiles[i][1];
-  }
-}
-
 function moveTile(hCoord,newHCoord){
   i = findTile(hCoord);
+  if(gTiles[i][1][2] != -1){
+    gTiles[gTiles[i][1][2]][0] = hCoord;
+  }
+  o = findTile(newHCoord);
+  if(o){
+    gTiles[i][1][2] = o;
+    gTiles[o][0] = [-100,-100];
+  } else {
+    gTiles[i][1][2] = -1;
+  }
   gTiles[i][0] = newHCoord;
 }
 
