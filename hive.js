@@ -125,6 +125,7 @@ function highlightButtons(){
   } else if(gPiece === 'ANT'){
     highlightButton(7);
   }
+  gContext.restore();
 }
 
 function pixToHex(pCoord){
