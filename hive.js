@@ -6,6 +6,7 @@ var gMouse = [-1,-1];
 var gPlayer = 'WHITE';
 var gPiece = 'BEE';
 var gWaitingForMove = null;
+var gOffset = false;
 
 var kWidth;
 var kHeight;
@@ -29,11 +30,14 @@ function hexCorner(x,y,size,i){
   return [x + size * Math.cos(rad), y + size * Math.sin(rad)];
 }
 
-function hexPath(context,hCoord,size,fillColour,textColour,label){
+function hexPath(context,hCoord,size){
   pCoord = hexToPix(hCoord);
   x = pCoord[0];
   y = pCoord[1];
-  
+  if(gOffset){
+    x += 3;
+    y -= 3;
+  }
   context.beginPath();
   for(i=0; i<7; i++){
     var point = hexCorner(x,y,size,i);
@@ -43,11 +47,12 @@ function hexPath(context,hCoord,size,fillColour,textColour,label){
 }
 
 function drawTile(hCoord,data){
-  gContext.save();
-  hexPath(gContext,hCoord,kTileSize);
-  
   player = data[0];
   piece = data[1];
+  above = data[2];
+  
+  gContext.save();
+  hexPath(gContext,hCoord,kTileSize);
   
   var fillColour = kPlayerColours[player];
   gContext.fillStyle = fillColour;
@@ -239,7 +244,14 @@ function hiveOnMove(e){
 function hiveRedraw(){
   gContext.clearRect(0,0,800,600);
   for (var tile in gTiles){
-    drawTile(gTiles[tile][0],gTiles[tile][1]);
+    if(gTiles[tile][1][2] != -1){
+      drawTile(gTiles[tile][0],gTiles[gTiles[tile][1][2]][1]);
+      gOffset = true;
+      drawTile(gTiles[tile][0],gTiles[tile][1]);
+      gOffset = false;
+    } else {
+      drawTile(gTiles[tile][0],gTiles[tile][1]);
+    }
   }
   drawCursor();
   drawButtons();
