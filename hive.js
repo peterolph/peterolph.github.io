@@ -5,40 +5,78 @@ var gCounter;
 var gTiles;
 var gMouse;
 
+var kWhiteColour = 'rgb(250,250,230)'
+var kBlackColour = 'rgb(30,30,30)'
+var kBeetleColour = 'rgb(144,129,246)'
+var kSpiderColour = 'rgb(79,42,23)'
+var kBeeColour = 'rgb(246,158,34)'
+var kHopperColour = 'rgb(47,158,64)'
+var kAntColour = 'rgb(67,134,205)'
+
 function hexCorner(x,y,size,i){
   var angle = 60 * i
   var rad = Math.PI / 180 * angle
   return [x + size * Math.cos(rad), y + size * Math.sin(rad)];
 }
 
-function hex(context,hCoord,size,fillColour,textColour,label){
-  
+function hexPath(context,hCoord,size,fillColour,textColour,label){
   pCoord = hexToPix(hCoord);
   x = pCoord[0]
   y = pCoord[1]
   
-  context.save()
   context.beginPath();
   for(i=0; i<7; i++){
     var point = hexCorner(x,y,size,i)
     context.lineTo(point[0],point[1]);
   }
   context.closePath();
+}
+
+function drawTile(context,hCoord,data){
+  context.save()
+  hexPath(context,hCoord,48);
   
-  if(fillColour){
-    context.fillStyle = fillColour
-    context.fill();
+  player = data[0]
+  piece = data[1]
+  
+  var fillColour = '#ffffff'
+  if(player === 'one'){
+    fillColour = kWhiteColour;
+  } else if(player === 'two'){
+    fillColour = kBlackColour;
   }
+  context.fillStyle = fillColour
+  context.fill();
   
   context.strokeStyle = '#202020'
   context.lineJoin = 'round'
   context.lineWidth = 1
   context.stroke();
   
+  var textColour = '#000000'
+  if(piece === 'BEE'){
+    textColour = kBeeColour;
+  } else if(piece === 'ANT'){
+    textColour = kAntColour;
+  } else if(piece === 'HOPPER'){
+    textColour = kHopperColour;
+  } else if(piece === 'SPIDER'){
+    textColour = kSpiderColour;
+  } else if(piece === 'BEETLE'){
+    textColour = kBeetleColour;
+  }
   context.fillStyle = textColour
   context.font = "20px Arial"
-  context.fillText(label,x,y)
+  context.fillText(piece,x,y)
   context.restore()
+}
+
+function drawCursor(context,hCoord){
+  context.save()
+  hexPath(context,hCoord,45);
+  context.strokeStyle = 'rgba(200,0,0,0.5)';
+  context.stroke();
+  context.restore();
 }
 
 function pixToHex(pCoord){
@@ -86,7 +124,7 @@ function getCoord(e){
 function hiveOnClick(e){
   pCoord = getCoord(e);
   var hCoord = pixToRoundHex(pCoord);
-  gTiles.push([hCoord,gCounter]);
+  setTile(hCoord,['one','BEE']);
   gCounter++;
   hiveRedraw();
 }
@@ -100,9 +138,27 @@ function hiveOnMove(e){
 function hiveRedraw(){
   gContext.clearRect(0,0,800,600);
   for (var tile in gTiles){
-    hex(gContext,gTiles[tile][0],48,'#ffffee','#dd4444',gTiles[tile][1]);
+    drawTile(gContext,gTiles[tile][0],gTiles[tile][1]);
   }
-  hex(gContext,gMouse,45,'','','');
+  drawCursor(gContext,gMouse);
+}
+
+function setTile(hCoord,data){
+  for(var i in gTiles){
+    if(gTiles[i][0][0] === hCoord[0] && gTiles[i][0][1] === hCoord[1]){
+      gTiles[i] = [hCoord,data];
+      return
+    }
+  }
+  gTiles.push([hCoord,data]);
+}
+
+function getTile(hCoord){
+  for(var i in gTiles){
+    if(gTiles[i][0][0] === hCoord[0] && gTiles[i][0][1] === hCoord[1]){
+      return gTiles[i][1];
+    }
+  }
 }
 
 $(document).ready(function() {
